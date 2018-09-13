@@ -1,0 +1,1 @@
+java -jar banmutang-theme-dev-tools.jar

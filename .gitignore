@@ -1,0 +1,7 @@
+.idea/
+*.iml
+source/
+/config.dev.txt
+releases/
+target/
+/dependency-reduced-pom.xml

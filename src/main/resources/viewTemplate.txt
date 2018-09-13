@@ -1,0 +1,5 @@
+#@__layout()
+
+#define body()
+{}
+#end
