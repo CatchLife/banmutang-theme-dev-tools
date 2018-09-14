@@ -1,6 +1,8 @@
 package com.edaoe;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.ZipUtil;
+import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.dialect.console.ConsoleLog;
@@ -10,8 +12,8 @@ import com.edaoe.model.Site;
 import com.edaoe.model.User;
 import com.edaoe.watch.Watch;
 import com.jfinal.core.JFinal;
-import com.jfinal.kit.HttpKit;
 import com.jfinal.kit.LogKit;
+import com.jfinal.kit.PathKit;
 import com.jfinal.kit.PropKit;
 import com.jfinal.kit.StrKit;
 
@@ -45,7 +47,25 @@ public class App {
 		initSite();
 		initUser();
 		Watch.watch();
-		JFinal.start("src/main/webapp", PropKit.getInt("port", 8080), "/");
+		startJFinal();
+	}
+	
+	private static void startJFinal(){
+		if (PropKit.getBoolean("dev",false)){
+			JFinal.start("src/main/resources", PropKit.getInt("port", 8080), "/");
+		}else{
+			File file=new File("classPath");
+			if (file.exists()){
+				JFinal.start(file.getAbsolutePath(), 8080, "/");
+			}else{
+				String basePath = App.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+				String classPath = basePath.substring(0, basePath.lastIndexOf("/")) + "/class-path";
+				ZipUtil.unzip(basePath, classPath);
+				PathKit.setWebRootPath(classPath);
+				PathKit.setRootClassPath(classPath);
+				JFinal.start(classPath, 8080, "/");
+			}
+		}
 	}
 	
 	private static final String ERROR = "错误：errno:{},errmsg:{}";
@@ -94,7 +114,7 @@ public class App {
 		if (cache && cacheMap.containsKey(otherUrl)) {
 			return (T) cacheMap.get(otherUrl);
 		}
-		String body = HttpKit.get(PropKit.get("baseUrl", "https://edaoe.com") + otherUrl);
+		String body = HttpUtil.get(PropKit.get("baseUrl", "http://edaoe.com") + otherUrl);
 		JSONObject obj = JSONUtil.parseObj(body);
 		if (!obj.getBool("ok")) {
 			App.error(obj);
